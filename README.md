@@ -1,6 +1,6 @@
-# Pitt-Pfizer NASH/NAFLD Project
+# MASLD Risk Prediction Project
 
-# Early Warning Tool for prioritizing individuals for screenings based on risk of NASH-NAFLD related liver complications)
+# Early Warning Tool for prioritizing individuals for screenings based on risk of MASLD related liver complications)
 
 ## Documentation
 [Documentation of steps and code](documentation.md)
@@ -10,13 +10,13 @@
 For every patient 
 1. who has *had at least one clinical visit* in the past 3 years
 2. is 18+ years of age (and alive)
-3. has not been diagnosed yet with NASH-NAFLD related liver_complications or hepatitis or alcohol related or other liver complications
+3. has not been diagnosed yet with MASLD related liver_complications or hepatitis or alcohol related or other liver complications
 
-Predict the top k individuals (based on intervention capacity) who are at risk of having NASH-NAFLD related liver complications in the *next 3 years*
+Predict the top k individuals (based on intervention capacity) who are at risk of having MASLD related liver complications in the *next 3 years*
 
 
 ## Analysis to be done
-- Predict risk of having NASH-NAFLD related liver complications in the next 3 years
+- Predict risk of having MASLD related liver complications in the next 3 years
 - Define Baselines:
      - age, most recent fib4, co-morbidities
      - clinical guidelines - t2dm, obesity, high tg, glucose, hdl, bp, ast or alt
