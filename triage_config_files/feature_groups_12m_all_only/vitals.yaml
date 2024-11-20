@@ -1,0 +1,44 @@
+prefix: 'a_vitals'
+from_obj: 'clean.vitals'
+knowledge_date_column: 'measure_date'
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+categoricals:
+  -
+    column: 'smoking'
+    metrics:
+      - 'max'
+    choice_query: 'select distinct smoking from clean.vitals'
+
+intervals: ['12month','all']
+
+aggregates:
+  - 
+    quantity: systolic      
+    metrics: [min, max, avg]
+    imputation:
+      all:
+        type: constant
+        value: 120
+
+  - 
+    quantity: diastolic
+    metrics: [min, max, avg]
+    imputation:
+      all:
+        type: constant
+        value: 80
+
+  - 
+    quantity: ht
+    metrics: [avg]
+
+  - 
+    quantity: wt
+    metrics: [min, max, avg]

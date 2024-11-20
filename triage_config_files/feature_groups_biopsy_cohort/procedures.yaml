@@ -1,0 +1,131 @@
+prefix: 'proc'
+from_obj: clean.procedures
+
+knowledge_date_column: px_date
+
+intervals: ['all', '1month', '3month', '12month']
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+aggregates_imputation:
+  all:
+      type: 'zero_noflag'
+
+aggregates:
+  - # number of liver biopsies
+    quantity:
+      liver_bx: "case
+            when px in (
+              '37200', '47000', '47001', '47100', '5557777', '75889', 'ECT00298', 
+              '50.11', '50.12', '50.13', '50.14', '101272', '79712', '225864', 
+              '240155', '3452', '256135', '75970'
+            ) then 1 
+            else NULL
+            end 
+      "
+    metrics: ['sum']
+
+  - # number of retinopathies
+    quantity:
+      retino: "case
+            when px in (
+              '92225','92226','92227','92228','92229','92250'
+            ) then 1 
+            else NULL
+            end 
+      "
+    metrics: ['sum']
+
+  - # adenoidectomy
+    quantity:
+      adenoid: "case
+            when px in (
+              '42820','42821','42836','42831','42835','42830','42999'
+            ) then 1 
+            else NULL
+            end 
+      "
+    metrics: ['sum']
+
+
+  - # tonsillectomy
+    quantity:
+      tonsill: "case
+            when px in (
+             '42700','42820','42821','42825','42826','42842','42844',
+             '42844','42845','42845','42860','42860','42870','42870',
+             '42999'
+            ) then 1 
+            else NULL
+            end 
+      "
+    metrics: ['sum']
+
+  - # appendectomy
+    quantity:
+      appendix: "case
+            when px in (
+              '44950','44955','44960','44970','56315','44979'
+            ) then 1 
+            else NULL
+            end 
+      "
+    metrics: ['sum']
+
+  - #cholecystectomy
+    quantity:
+      cholecyst: "case
+            when px in (
+              '47562','47562','47563','47563','47564','47564',
+              '47600','47605','47610','47612','47620','56340'
+            ) then 1 
+            else NULL
+            end 
+      "
+    metrics: ['sum']
+
+  - # hysterectomy
+    quantity:
+      hysterect: "case
+            when px in (
+             '51925','58150','58152','58180','58200','58210',
+             '58260','58262','58263','58267','58270','58275',
+             '58280','58285','58550','58578','58951','59525',
+             '58290','58291','58292','58293','58294','58552',
+             '58553','58554'
+            ) then 1 
+            else NULL
+            end 
+      "
+    metrics: ['sum']
+
+  - # oophorectomy
+    quantity:
+      oophorect: "case
+            when px in (
+              '58720','58940','58943','59120','59121','59150',
+              '59151','58940','58943','59120','58920','58720'
+            ) then 1 
+            else NULL
+            end 
+      "
+    metrics: ['sum']
+
+categoricals:
+  - # top 50 procedures
+    column: 'px'
+    choice_query: |
+            SELECT DISTINCT px
+                    FROM (
+                            SELECT px,
+                                    count(*)
+                              FROM clean.procedures
+                              GROUP BY px order by count(*) desc limit 50
+                        ) AS code_counts
+
+    metrics:
+      - 'sum'
+
+

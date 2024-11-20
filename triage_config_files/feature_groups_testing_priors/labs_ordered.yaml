@@ -1,0 +1,130 @@
+prefix: 'labs_ordered'
+from_obj: 'clean.labs'
+knowledge_date_column: 'lab_order_date'
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+
+aggregates:
+  - #number of labs ordered
+    quantity:
+      total: "*"
+    metrics:
+      - 'count'
+
+  - # total number of unique days labs ordered in the past
+    quantity:
+      unique_days_visited: "distinct DATE(lab_order_date)"
+    metrics:
+      - 'count'
+
+  - # platelet
+    quantity: 
+      plt: "case 
+            when lab_loinc in ('777-3', '26515-7', '49497-1', '778-1')
+            then 1
+            else null
+            end
+          "
+    metrics: ['sum']
+    imputation:
+      all:
+        type: 'zero'
+
+  - # alt
+    quantity:
+      alt: "case 
+            when lab_loinc in ('1742-6', '1743-4', '1744-2')
+            then 1
+            else null
+            end
+          "
+    metrics: ['sum']
+    imputation:
+      all:
+        type: 'zero'
+
+  - #ast 
+    quantity:
+      ast: "case 
+              when lab_loinc in ('1920-8', '30239-8')
+              then 1
+              else null
+              end
+            "
+    metrics: ['sum']
+    imputation:
+      all:
+        type: 'zero'
+
+  - #a1c
+    quantity:
+      a1c: "case 
+              when lab_loinc in ('17856-6', '41995-2', '4549-2', '4548-4')
+              then 1
+              else null
+            end
+          "
+    metrics: ['sum']
+    imputation:
+      all:
+        type: 'zero'
+
+  - #albumin
+    quantity:
+      albumin: "case 
+                  when lab_loinc in ('1751-7', '61151-7', '2862-1', '61152-5')
+                  then 1
+                  else null
+                end
+              "
+    metrics: ['sum']
+    imputation:
+      all:
+        type: 'zero'
+
+  - #alp
+    quantity:
+      alp: "case 
+              when lab_loinc in ('6768-6')
+              then 1
+              else null
+            end
+          "
+    metrics: ['sum']
+    imputation:
+      all:
+        type: 'zero' 
+
+  - #ggt
+    quantity:
+      ggt: "case 
+              when lab_loinc in ('2324-2')
+              then 1
+              else null
+            end
+          "
+    metrics: ['sum']
+    imputation:
+      all:
+        type: 'zero'
+
+  - #tg
+    quantity:
+      tg: "case 
+            when lab_loinc in ('2571-8')
+            then 1
+            else null
+          end
+        "
+    metrics: ['sum']
+    imputation:
+      all:
+        type: 'zero'
+
+intervals: ['1month', '3month', '6month','12month','all']

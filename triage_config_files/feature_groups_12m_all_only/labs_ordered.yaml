@@ -1,0 +1,411 @@
+prefix: 'a_labs_ordered'
+from_obj: 'clean.labs'
+knowledge_date_column: 'lab_order_date'
+aggregates_imputation:
+  all:
+    type: 'zero_noflag'
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+
+aggregates:
+  - #number of labs ordered
+    quantity:
+      total: "*"
+    metrics:
+      - 'count'
+
+  - # total number of unique days labs ordered in the past
+    quantity:
+      unique_days_visited: "distinct DATE(lab_order_date)"
+    metrics:
+      - 'count'
+
+  - # platelet
+    quantity: 
+      plt: "case 
+            when lab_loinc in ('777-3', '26515-7', '49497-1', '778-1')
+            then 1
+            else null
+            end
+          "
+    metrics: ['sum']
+
+
+  - # alt
+    quantity:
+      alt: "case 
+            when lab_loinc in ('1742-6', '1743-4', '1744-2')
+            then 1
+            else null
+            end
+          "
+    metrics: ['sum']
+
+
+  - #ast 
+    quantity:
+      ast: "case 
+              when lab_loinc in ('1920-8', '30239-8')
+              then 1
+              else null
+              end
+            "
+    metrics: ['sum']
+
+
+  - #a1c
+    quantity:
+      a1c: "case 
+              when lab_loinc in ('17856-6', '41995-2', '4549-2', '4548-4')
+              then 1
+              else null
+            end
+          "
+    metrics: ['sum']
+
+
+  - #albumin
+    quantity:
+      albumin: "case 
+                  when lab_loinc in ('1751-7', '61151-7', '2862-1', '61152-5')
+                  then 1
+                  else null
+                end
+              "
+    metrics: ['sum']
+
+
+  - #alp
+    quantity:
+      alp: "case 
+              when lab_loinc in ('6768-6')
+              then 1
+              else null
+            end
+          "
+    metrics: ['sum']
+
+
+  - #ggt
+    quantity:
+      ggt: "case 
+              when lab_loinc in ('2324-2')
+              then 1
+              else null
+            end
+          "
+    metrics: ['sum']
+
+
+  - #tg
+    quantity:
+      tg: "case 
+            when lab_loinc in ('2571-8')
+            then 1
+            else null
+          end
+        "
+    metrics: ['sum']
+
+
+  - #apo_a1
+    quantity:
+      apo_a1: "case 
+                  when lab_loinc in ('1869-7', '55724-9')
+                  then 1
+                  else null
+                end
+                "
+    metrics: ['sum']
+
+
+  - #apo_b
+    quantity:
+      apo_b: "case 
+                  when lab_loinc in ('1884-6', '1871-3', '1881-2')
+                  then 1
+                  else null
+              end
+                "
+    metrics: ['sum']
+
+
+  - #hscrp
+    quantity:
+      hscrp: "case 
+                  when lab_loinc in ('30522-7', '35648-5')
+                  then 1
+                  else null
+                end
+                "
+    metrics: ['sum']
+
+
+  - #lp_a
+    quantity:
+      lp_a: "case 
+                  when lab_loinc in ('43583-4', '10835-7')
+                  then 1
+                  else null
+              end
+                "
+    metrics: ['sum']
+
+
+  - #nlr
+    quantity:
+      nlr: "case 
+                  when lab_loinc in ('770-8', '23761-0', '26511-6')
+                  then 1
+                  else null
+            end
+                "
+    metrics: ['sum']
+
+
+  - #non_hdl
+    quantity:
+      non_hdl: "case 
+                  when lab_loinc in ('43396-1')
+                  then 1
+                  else null
+                end
+                "
+    metrics: ['sum']
+
+
+  - #uacr
+    quantity:
+      uacr: "case 
+                  when lab_loinc in ('9318-7', '13705-9', '32294-1', '14585-4')
+                  then 1
+                  else null
+                end
+                "
+    metrics: ['sum']
+
+
+  - #vldl
+    quantity:
+      vldl: "case 
+                  when lab_loinc in ('46986-6', '13458-5', '2091-7')
+                  then 1
+                  else null
+              end
+                "
+    metrics: ['sum']
+
+
+  - #creatinine
+    quantity:
+      creatinine: "case 
+                  when lab_loinc in ('2160-0', '38483-4')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #uric_acid
+    quantity:
+      uric_acid: "case 
+                  when lab_loinc in ('3084-1', '14933-6')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #hemoglobin
+    quantity:
+      hemoglobin: "case 
+                  when lab_loinc in ('718-7', '55782-7', '20509-6', '30350-3', '76769-9')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #glucose
+    quantity:
+      glucose: "case 
+                  when lab_loinc in ('2345-7', '2339-0', '2340-8', '14749-6')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #iron_saturation
+    quantity:
+      iron_saturation: "case 
+                  when lab_loinc in ('2502-3', '14801-5')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #ferritin
+    quantity:
+      ferritin: "case 
+                  when lab_loinc in ('2276-4', '20567-4')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #aat
+    quantity:
+      aat: "case 
+                  when lab_loinc in ('1825-9', '32769-2', '6771-0', '6770-2', '49244-7')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #basophils
+    quantity:
+      basophils: "case 
+                  when lab_loinc in ('704-7', '26444-0', '705-4')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #blratio
+    quantity:
+      blratio: "case 
+                  when lab_loinc in ('706-2', '30180-4', '707-0')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #el_ratio
+    quantity:
+      el_ratio: "case 
+                  when lab_loinc in ('713-8', '26450-7', '714-6')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #eosinophils
+    quantity:
+      eosinophils: "case 
+                  when lab_loinc in ('711-2', '26449-9', '712-0', '20472-7')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #erythrocytes
+    quantity:
+      erythrocytes: "case 
+                  when lab_loinc in ('789-8', '26453-1')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #hematocrit
+    quantity:
+      hematocrit: "case 
+                  when lab_loinc in ('4544-3', '20570-8', '4545-0', '48703-3')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #leukocytes
+    quantity:
+      leukocytes: "case 
+                  when lab_loinc in ('6690-2', '26464-8')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #lyle_ratio
+    quantity:
+      lyle_ratio: "case 
+                  when lab_loinc in ('736-9', '26478-8', '737-7')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #mlratio
+    quantity:
+      mlratio: "case 
+                  when lab_loinc in ('5905-5', '26485-3', '744-3')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #monocytes
+    quantity:
+      monocytes: "case 
+                  when lab_loinc in ('742-7', '26484-6', '743-5')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #neutrophils
+    quantity:
+      neutrophils: "case 
+                  when lab_loinc in ('751-8', '753-4', '26499-4')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+
+  - #platelet_volume
+    quantity:
+      platelet_volume: "case 
+                  when lab_loinc in ('32623-1', '776-5', '28542-9')
+                  then 1
+                  else null
+                  end
+                "
+    metrics: ['sum']
+
+#intervals: ['1month', '3month','12month','all']
+intervals: ['12month','all']

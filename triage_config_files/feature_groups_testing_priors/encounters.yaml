@@ -1,0 +1,132 @@
+prefix: 'encounters'
+from_obj: 'clean.encounters'
+knowledge_date_column: 'admit_date'
+
+aggregates_imputation:
+        all:
+            type: 'zero_noflag'
+
+categoricals_imputation:
+        all:
+            type: 'null_category'
+
+aggregates:
+  - # total number of past visits
+    quantity:
+      total: "*"
+    metrics:
+      - 'count'
+
+  - # total number of unique days visited in the past
+    quantity:
+      unique_days_visited: "distinct DATE(admit_date)"
+    metrics:
+      - 'count'
+
+  -
+    quantity:
+      length_of_stay_inpatient: "case when enc_type = 'IP' then  (discharge_date::date - admit_date::date) else null end"
+    metrics:
+      - 'max'
+      - 'min'
+      - 'avg'
+      - 'stddev'
+    imputation:
+      all:
+        type: 'zero_noflag'
+
+  - # number of times using medicaid
+    quantity:
+      medicaid: "case 
+                  when raw_payer_id_primary in ('X', '3', '104', '143', '151', '127', '157', '155', '103') then 1 
+                  else 0
+                  end 
+                " 
+    metrics:
+      - sum
+
+    imputation:
+      all:
+        type: 'zero_noflag'
+
+  - # Number of times with medicair
+    quantity:
+      medicare: "case 
+                  when raw_payer_id_primary in ('147', '159', 'N', '137', '2M', '2', '152', 'MC', '150', '142', '156', '101', 'M', 'UM', '2') then 1 
+                  else 0
+                  end 
+                " 
+    metrics:
+      - sum
+
+    imputation:
+      all:
+        type: 'zero_noflag'
+
+  - # Commercial insurance
+    quantity:
+      commercial_ins: "case 
+                  when raw_payer_id_primary in ('116', '111', '3C', 'cc', '145', '4A', '4M', '138', 'I4', '134', 'IC', 'HA', 
+                    '2B', '4', '158', '107', 'DB', 'CM', 'B', '119', '0', '4H', '149', 'C', '132', '133', '10', 'CG', 'AD', 
+                    'MS', '131', 'MU', 'GA', 'US', '100', '144', '1', 'Q', '153', 'UH', '102', 'BE', '108', '112') 
+                  then 1 
+                  else 0
+                  end 
+                " 
+    metrics:
+      - sum
+
+    imputation:
+      all:
+        type: 'zero_noflag'
+
+  - # Num times with no insurance information
+    quantity:
+      no_info: "case 
+                  when raw_payer_id_primary is null then 1 
+                  else 0
+                  end 
+                " 
+    metrics:
+      - sum
+
+    imputation:
+      all:
+        type: 'zero_noflag'
+
+  - # other insurance
+    quantity:
+      other_ins: "case 
+                  when (
+                  raw_payer_id_primary not in ('X', '3', '104', '143', '151', '127', '157', '155', '103', 
+                  '147', '159', 'N', '137', '2M', '2', '152', 'MC', '150', '142', '156', '101', 'M', 'UM', '2',
+                  '116', '111', '3C', 'cc', '145', '4A', '4M', '138', 'I4', '134', 'IC', 'HA', '2B', '4', '158', 
+                  '107', 'DB', 'CM', 'B', '119', '0', '4H', '149', 'C', '132', '133', '10', 'CG', 'AD', 'MS', 
+                  '131', 'MU', 'GA', 'US', '100', '144', '1', 'Q', '153', 'UH', '102', 'BE', '108', '112'
+                  ) 
+                  and raw_payer_id_primary is not null
+                  )
+                  then 1 
+                  else 0
+                  end 
+                " 
+    metrics:
+        - sum
+
+    imputation:
+      all:
+        type: 'zero_noflag'
+
+
+categoricals:
+  -
+    column: 'enc_type'
+    metrics:
+      - 'max'
+      - 'sum'
+    choice_query: 'select distinct enc_type from clean.encounters'
+
+
+intervals: ['1month','3month','6month','12month','all']
+groups: ['entity_id']
+

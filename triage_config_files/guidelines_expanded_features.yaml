@@ -1,0 +1,287 @@
+prefix: 'guidelines_demos'
+from_obj: |
+      (select entity_id, sex,race,birth_date,zip_code, hispanic, substring(ruca_code,1,2) as ruca_code_prefix,
+      greatest(birth_date,'2011-01-01') as dob from clean.demographics) as dems
+knowledge_date_column: 'dob'
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+#getting gender info
+
+categoricals:
+  -
+    column: 'sex'
+    metrics:
+      - 'max'
+    choice_query: 'select distinct sex from clean.demographics'
+
+  -
+    column: 'hispanic'
+    metrics:
+      - 'max'
+    choice_query: 'select distinct hispanic from clean.demographics'
+
+  -
+    column: 'race'
+    metrics:
+      - 'max'
+    choice_query: 'select distinct race from clean.demographics'
+
+aggregates:
+  - # age in years
+    quantity:
+      age: "extract(year from age('{collate_date}'::date,  birth_date::date))"
+    metrics:
+      - 'max'
+
+intervals: ['all']
+
+prefix: 'guidelines_diagnosis'
+from_obj: 'clean.diagnosis_mod_extended'
+knowledge_date_column: 'dx_date'
+
+aggregates_imputation:
+  all:
+    type: 'zero_noflag'
+
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+aggregates:
+
+  - # Type 2 Diabetes
+    quantity:
+      t2dm: "case
+            when dx_type = '10' and dx like '%E11%' then 1
+            when dx_type = '10' and dx like '%O24.1%' then 1
+            when  dx_type = '09' and dx in
+                          ( '250.00',
+            '250.02',
+            '250.20',
+            '250.22',
+            '250.40',
+            '250.42',
+            '250.50',
+            '250.52',
+            '250.60',
+            '250.62',
+            '250.80',
+            '250.82',
+            '250.90',
+            '250.92') then 1
+
+            else 0 end"
+    metrics:
+      - 'sum'
+
+  - #MASH/MAFLD
+    quantity:
+      mafld: "case
+            when dx ='K75.81' and dx_type = '10' then 1
+            when dx ='K76.0' and dx_type ='10' then 1
+            when dx ='571.8' and dx_type ='09' then 1
+
+
+            else 0 end"
+    metrics:
+      - 'sum'
+
+
+  - #Essential Hypertension
+    quantity:
+      ehypertension: "case
+                      when dx ='I10' and dx_type = '10' then 1
+                      when dx_type = '09' and dx like '401.1%' then 1
+                      when dx_type = '09' and dx like '401.9%' then 1
+
+                      else 0 end"
+    metrics:
+      - 'sum'
+
+  - #Obesity
+    quantity:
+      obesity_dx: "case
+                    when dx like 'Z68.3%' and dx_type = '10' then 1
+                    when dx  like 'Z68.4%' and dx_type ='10' then 1
+                    when dx like 'E66%' and dx_type = '10' then 1
+                    when dx  like 'O99.21%' and dx_type ='10' then 1
+                    when dx  = '278.0' and dx_type ='09' then 1
+                    when dx = '278.00' and dx_type = '09' then 1
+                    when dx  = '278.01' and dx_type ='09' then 1
+
+                    else 0 end"
+    metrics:
+      - 'sum'       
+
+intervals: ['all']
+
+
+prefix: 'guidelines_fib4'
+from_obj: 'clean.fib4'
+knowledge_date_column: 'specimen_date'
+
+aggregates_imputation:
+        all:
+            type: 'zero_noflag'
+
+categoricals_imputation:
+        all:
+            type: 'null_category'
+
+aggregates:
+  - #number of fib4s
+    quantity:
+      total: "*"
+    metrics: ['count']
+
+  - 
+    quantity:
+      fib4: fib4
+    metrics:
+      - sum
+      - avg
+      - min
+      - max
+    imputation:
+        all:
+          type: 'zero'
+
+intervals: ['all']
+
+prefix: 'guidelines_lab_res'
+from_obj: 'clean.labs'
+knowledge_date_column: 'specimen_date'
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+intervals: ['all']
+
+aggregates:
+
+  - # alt
+    quantity:
+      alt: "case 
+            when lab_loinc in ('1742-6', '1743-4', '1744-2')
+            then result_num
+            else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 20 # elevated at 25 for women
+
+  - #ast 
+    quantity:
+      ast: "case 
+              when lab_loinc in ('1920-8', '30239-8')
+              then result_num
+              else null
+              end
+            "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 20 # <40 is normal
+
+  - #tg
+    quantity:
+      tg: "case 
+            when lab_loinc in ('2571-8')
+            then result_num
+            else null
+          end
+        "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 149 # <150 is normal
+
+  - #HDL
+    quantity:
+      hdl: "case 
+              when lab_loinc in ('2085-9')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 60 # >60 is normal
+
+  - #glucose
+    quantity:
+      glucose: "case 
+                      when lab_loinc in ('2345-7', '2339-0', '2340-8', '14749-6')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 99 #<100 is normal
+
+
+
+prefix: 'guidelines_vitals'
+from_obj: 'clean.vitals'
+knowledge_date_column: 'measure_date'
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+intervals: ['all']
+
+aggregates:
+  - 
+    quantity: systolic      
+    metrics: [min, max, avg]
+    imputation:
+      all:
+        type: constant
+        value: 120
+
+  - 
+    quantity: diastolic
+    metrics: [min, max, avg]
+    imputation:
+      all:
+        type: constant
+        value: 80
+
+  - 
+    quantity: ht
+    metrics: [avg]
+
+  - 
+    quantity: wt
+    metrics: [min, max, avg]
+
+  - 
+    quantity: original_bmi      
+    metrics: [min, max, avg]
+    imputation:
+      all:
+        type: constant
+        value: 22

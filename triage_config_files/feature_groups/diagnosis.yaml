@@ -1,0 +1,203 @@
+prefix: 'diagnosis'
+from_obj: 'clean.diagnosis_mod_extended'
+knowledge_date_column: 'dx_date'
+
+aggregates_imputation:
+  all:
+    type: 'zero_noflag'
+
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+categoricals:
+  - # top 50 diagnosis
+    column: 'dx'
+    choice_query: |
+            SELECT DISTINCT dx
+                    FROM (
+                            SELECT dx,
+                                    count(*)
+                              FROM clean.diagnosis_mod_extended
+                              GROUP BY dx order by count(*) desc limit 50
+                        ) AS code_counts
+
+    metrics:
+      - 'sum'
+
+  - # top X ccsr
+    column: 'ccsr_category_merged'
+    choice_query: |
+            SELECT DISTINCT ccsr_category_merged
+                    FROM (
+                            SELECT ccsr_category_merged,
+                                    count(*)
+                              FROM clean.diagnosis_mod_extended
+                              GROUP BY ccsr_category_merged order by count(*) desc limit 50
+                        ) AS ccsr_code_counts
+
+    metrics:
+      - 'sum'
+
+aggregates:
+  - #number of dianosis
+    quantity:
+      total: "*"
+    metrics: ['count']
+
+  - # total number of unique ccsr categories 
+    quantity:
+      unique_ccsr_categories: "distinct ccsr_category_merged"
+    metrics: 
+      - 'count'
+
+
+  - #
+    quantity:
+      AMI: "case when dx like '%I23%'
+            or dx like '%I31.2%'
+            then 1 else 0 end"
+    metrics: ['sum']
+
+  - #
+    quantity:
+      CHF: "case when dx like '%I50%'
+            then 1 else 0 end"
+    metrics: ['sum']
+
+  - #
+    quantity:
+      PeripheralArteryDisease: "case when dx like '%I73%'
+            then 1 else 0 end"
+    metrics: ['sum']
+
+  - #
+    quantity:
+      prerenalInjury: "case when dx like '%R39.2%'
+            then 1 else 0 end"
+    metrics: ['sum']
+
+  - #
+    quantity:
+      sepsis: "case
+            when dx like '%A02.1%' then 1
+            when dx like '%A22.7%' then 1
+            when dx like '%A26.7%' then 1
+            when dx like '%A40%' then 1
+            when dx like '%A41%' then 1
+            when dx like '%A42.7%' then 1
+            when dx like '%A54.86%' then 1
+            when dx like '%B37.7%' then 1
+            when dx like '%O85%' then 1
+            when dx like '%P36%' then 1
+            when dx like '%R65%' then 1
+            else 0 end"
+    metrics:
+      - 'sum'
+
+  - #
+    quantity:
+      volumeDepletion: "case
+            when dx like '%E86%' then 1
+            else 0 end"
+    metrics:
+      - 'sum'
+
+  - #
+    quantity:
+      shock: "case
+            when dx like '%D78%' then 1
+            when dx like '%E36%' then 1
+            when dx like '%G97%' then 1
+            when dx like '%I97%' then 1
+            when dx like '%J95%' then 1
+            when dx like '%K68.11%' then 1
+            when dx like '%k91%' then 1
+            when dx like '%L76%' then 1
+            when dx like '%M96%' then 1
+            when dx like '%N99%' then 1
+            when dx like '%O03%' then 1
+            else 0 end"
+    metrics:
+      - 'sum'
+
+  - #
+    quantity:
+      hypertension: "case
+
+            when dx like '%I11.9%' then 1
+            when dx like '%I12.9%' then 1
+            when dx like '%I13.10%' then 1
+            when dx like '%I16.0%' then 1
+            when dx like '%I16.1%' then 1
+            when dx like '%I16.94%' then 1
+            else 0 end"
+    metrics:
+      - 'sum'
+
+  - # Type 2 Diabetes
+    quantity:
+      t2dm: "case
+            when dx_type = '10' and dx like '%E11%' then 1
+            when dx_type = '10' and dx like '%O24.1%' then 1
+            when  dx_type = '09' and dx in
+                          ( '250.00',
+            '250.02',
+            '250.20',
+            '250.22',
+            '250.40',
+            '250.42',
+            '250.50',
+            '250.52',
+            '250.60',
+            '250.62',
+            '250.80',
+            '250.82',
+            '250.90',
+            '250.92') then 1
+
+            else 0 end"
+    metrics:
+      - 'sum'
+
+  - #MASH/MAFLD
+    quantity:
+      mafld: "case
+            when dx ='K75.81' and dx_type = '10' then 1
+            when dx ='K76.0' and dx_type ='10' then 1
+            when dx ='571.8' and dx_type ='09' then 1
+
+
+            else 0 end"
+    metrics:
+      - 'sum'
+
+
+  - #Essential Hypertension
+    quantity:
+      ehypertension: "case
+                      when dx ='I10' and dx_type = '10' then 1
+                      when dx_type = '09' and dx like '401.1%' then 1
+                      when dx_type = '09' and dx like '401.9%' then 1
+
+                      else 0 end"
+    metrics:
+      - 'sum'
+
+  - #Obesity
+    quantity:
+      obesity_dx: "case
+                    when dx like 'Z68.3%' and dx_type = '10' then 1
+                    when dx  like 'Z68.4%' and dx_type ='10' then 1
+                    when dx like 'E66%' and dx_type = '10' then 1
+                    when dx  like 'O99.21%' and dx_type ='10' then 1
+                    when dx  = '278.0' and dx_type ='09' then 1
+                    when dx = '278.00' and dx_type = '09' then 1
+                    when dx  = '278.01' and dx_type ='09' then 1
+
+                    else 0 end"
+    metrics:
+      - 'sum'       
+
+intervals: ['1month','3month','12month','all']

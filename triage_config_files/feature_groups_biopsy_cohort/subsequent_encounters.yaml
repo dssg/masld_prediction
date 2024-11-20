@@ -1,0 +1,31 @@
+prefix: 'subseq_enc'
+from_obj: |
+  (with unique_days as (
+      select 
+        distinct entity_id, admit_date
+      from clean.encounters
+  )
+  select 
+    entity_id,
+    admit_date,
+    lag(admit_date, 1) over (partition by entity_id order by admit_date) as lagged_admit_date
+  from unique_days) as sq
+
+knowledge_date_column: 'admit_date'
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+aggregates:
+  - # days between subsequent events
+    quantity: 
+      days_between: admit_date - lagged_admit_date
+    
+    metrics:
+      - min
+      - max
+      - avg
+      - stddev
+
+intervals: ['all']

@@ -1,0 +1,164 @@
+prefix: lab_res
+from_obj: 'clean.labs'
+knowledge_date_column: 'specimen_date'
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+intervals: ['1month', '3month', '6month','12month','all']
+
+aggregates:
+  - # platelet
+    quantity: 
+      plt: "case 
+            when lab_loinc in ('777-3', '26515-7', '49497-1', '778-1')
+            then result_num
+            else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 300 # middle of the normal range
+
+  - # alt
+    quantity:
+      alt: "case 
+            when lab_loinc in ('1742-6', '1743-4', '1744-2')
+            then result_num
+            else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # guessing lower the better?
+
+  - #ast 
+    quantity:
+      ast: "case 
+              when lab_loinc in ('1920-8', '30239-8')
+              then result_num
+              else null
+              end
+            "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # guessing lower the better?
+
+  - #a1c
+    quantity:
+      a1c: "case 
+              when lab_loinc in ('17856-6', '41995-2', '4549-2', '4548-4')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # lower the better - should this be normal value 5?
+
+  - #albumin
+    quantity:
+      albumin: "case 
+                  when lab_loinc in ('1751-7', '61151-7', '2862-1', '61152-5')
+                  then result_num
+                  else null
+                end
+              "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # lower the better  
+
+  - #alp
+    quantity:
+      alp: "case 
+              when lab_loinc in ('6768-6')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # lower the better 
+
+  - #ggt
+    quantity:
+      ggt: "case 
+              when lab_loinc in ('2324-2')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # lower the better
+
+  - #tg
+    quantity:
+      tg: "case 
+            when lab_loinc in ('2571-8')
+            then result_num
+            else null
+          end
+        "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # lower the better
+    
+  - #LDL
+    quantity:
+      ldl: "case 
+              when lab_loinc in ('13457-7', '18262-6', '2089-1', '3046-0')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # lower the better
+
+  - #HDL
+    quantity:
+      hdl: "case 
+              when lab_loinc in ('2085-9')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 1000 # higher the better
+
+  - # total cholesterol
+    quantity:
+      tot_chol: "case 
+                    when lab_loinc in ('2093-3')
+                    then result_num
+                    else null
+                  end
+                "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # lower the better

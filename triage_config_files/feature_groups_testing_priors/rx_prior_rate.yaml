@@ -1,0 +1,23 @@
+prefix: 'rx_prior_rate'
+from_obj: clean.prescribing
+knowledge_date_column: 'rx_order_date'
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+intervals: ['12month','all']
+
+categoricals:
+
+  - # top  rx by class prior rate
+    column: 'rxnorm_cui'
+    choice_query: |
+            SELECT DISTINCT rxnorm_cui from analysis.rx_codes_for_prior_rate_testing
+    metrics:
+      - 'sum'
+

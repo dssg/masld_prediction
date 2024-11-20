@@ -1,0 +1,605 @@
+# CONFIG VERSION
+config_version: 'v8'
+
+# EXPERIMENT METADATA
+model_comment: 'cohort_3yr_outcome_3yr'
+random_seed: 42
+
+
+# TIME SPLITTING
+temporal_config:
+    feature_start_time: '2011-01-01'
+    feature_end_time: '2023-05-01'
+    label_start_time: '2015-05-01'
+    label_end_time: '2023-05-01'
+    model_update_frequency: '1year' #  how frequently to retrain models
+    training_as_of_date_frequencies: '6month'  # time between as of dates for same entity in train matrix
+    test_as_of_date_frequencies: '1year'  # time between as of dates for same entity in test matrix
+    max_training_histories: '10year'  # length of time included in a train matrix
+    test_durations: '0day' # length of time included in a test matrix (0 days will give a single prediction immediately after training end)
+    label_timespans: ['3year'] # time period across which outcomes are labeled
+
+# COHORT AND LABEL GENERATION
+label_config:
+  filepath: '../triage_config_files/cohort_label_query_CTE.sql'
+  # include_missing_labels_in_train_as: false
+  # should change it to 3yr cohort
+  name: 'cohort3y_outcome3yr'
+
+feature_aggregations:
+
+
+  - # demographics
+    prefix: 'demos'
+    from_obj: |
+          (select entity_id, sex,race,birth_date,zip_code, 
+          greatest(birth_date,'2011-01-01') as dob from clean.demographics) as dems
+    knowledge_date_column: 'dob'
+
+    aggregates_imputation:
+      all:
+        type: 'mean'
+
+    categoricals_imputation:
+      all:
+        type: 'null_category'
+
+    #getting gender info
+    categoricals:
+      -
+        column: 'sex'
+        metrics:
+          - 'max'
+        choice_query: 'select distinct sex from clean.demographics'
+
+      -
+        column: 'race'
+        metrics:
+          - 'max'
+        choice_query: 'select distinct race from clean.demographics'
+
+      -
+        column: 'zip_code'
+        choice_query: |
+              SELECT DISTINCT zip_code_upper
+                      FROM (
+                               SELECT upper(zip_code) as zip_code_upper,
+                                      count(*) as counts
+                                FROM clean.demographics
+                                GROUP BY upper(zip_code) order by count(*) desc limit 20
+                           ) AS zip_counts
+        metrics:
+          - 'max'
+
+    aggregates:
+      - # age in years
+        quantity:
+          age: "extract(year from age('{collate_date}'::date,  birth_date::date))"
+        metrics:
+          - 'max'
+
+    intervals: ['all']
+
+
+  - # encounters
+    prefix: 'encounters'
+    from_obj: 'clean.encounters'
+    knowledge_date_column: 'admit_date'
+
+    aggregates_imputation:
+            all:
+                type: 'zero_noflag'
+
+    categoricals_imputation:
+            all:
+                type: 'null_category'
+
+    aggregates:
+      - # total number of past visits
+        quantity:
+          total: "*"
+        metrics:
+          - 'count'
+
+      - # total number of unique days visited in the past
+        quantity:
+          unique_days_visited: "distinct DATE(admit_date)"
+        metrics:
+          - 'count'
+
+      -
+        quantity:
+          length_of_stay_inpatient: "case when enc_type = 'IP' then  (discharge_date::date - admit_date::date) else null end"
+        metrics:
+          - 'max'
+          - 'min'
+          - 'avg'
+          - 'stddev'
+        imputation:
+          all:
+            type: 'zero_noflag'
+
+  
+
+    categoricals:
+      -
+        column: 'enc_type'
+        metrics:
+          - 'max'
+          - 'sum'
+        choice_query: 'select distinct enc_type from clean.encounters'
+
+
+    intervals: ['1month','3month','6month','12month','all']
+    groups: ['entity_id']
+
+  - # days since last event
+    prefix: 'days_since'
+    from_obj: 'clean.encounters'
+    knowledge_date_column: 'discharge_date'
+    aggregates_imputation:
+      all:
+        type: 'mean'
+
+    aggregates:
+      - # days since last event
+        quantity:
+          last_encounter: "'{collate_date}'::DATE - discharge_date::DATE"
+        metrics:
+            - 'min'
+            - 'max'
+        imputation:
+          all:
+            type: 'constant'
+            value: 1000
+
+    intervals: ['50y']
+    groups: ['entity_id']
+
+
+  -  # diagnosis
+    prefix: 'diagnosis'
+    from_obj: 'clean.diagnosis_mod_extended'
+    knowledge_date_column: 'dx_date'
+
+    aggregates_imputation:
+      all:
+        type: 'zero_noflag'
+
+
+    categoricals_imputation:
+      all:
+        type: 'null_category'
+
+    categoricals:
+      - # top 50 diagnosis
+        column: 'dx'
+        choice_query: |
+                SELECT DISTINCT dx
+                        FROM (
+                                SELECT dx,
+                                        count(*)
+                                  FROM clean.diagnosis_mod_extended
+                                  GROUP BY dx order by count(*) desc limit 50
+                            ) AS code_counts
+
+        metrics:
+          - 'max'
+          - 'sum'
+
+      - # top X ccsr
+        column: 'ccsr_category_merged'
+        choice_query: |
+                SELECT DISTINCT ccsr_category_merged
+                        FROM (
+                                SELECT ccsr_category_merged,
+                                        count(*)
+                                  FROM clean.diagnosis_mod_extended
+                                  GROUP BY ccsr_category_merged order by count(*) desc limit 50
+                            ) AS ccsr_code_counts
+
+        metrics:
+          - 'max'
+          - 'sum'
+
+    aggregates:
+      - #number of dianosis
+        quantity:
+          total: "*"
+        metrics: ['count']
+
+      - # total number of unique ccsr categories 
+        quantity:
+          unique_ccsr_categories: "distinct ccsr_category_merged"
+        metrics: 
+          - 'count'
+
+
+      - #
+        quantity:
+          AMI: "case when dx like '%I23%'
+                or dx like '%I31.2%'
+                then 1 else 0 end"
+        metrics: ['sum']
+
+      - #
+        quantity:
+          CHF: "case when dx like '%I50%'
+                then 1 else 0 end"
+        metrics: ['sum']
+
+      - #
+        quantity:
+          PeripheralArteryDisease: "case when dx like '%I73%'
+                then 1 else 0 end"
+        metrics: ['sum']
+
+      - #
+        quantity:
+          prerenalInjury: "case when dx like '%R39.2%'
+                then 1 else 0 end"
+        metrics: ['sum']
+
+      - #
+        quantity:
+          sepsis: "case
+                when dx like '%A02.1%' then 1
+                when dx like '%A22.7%' then 1
+                when dx like '%A26.7%' then 1
+                when dx like '%A40%' then 1
+                when dx like '%A41%' then 1
+                when dx like '%A42.7%' then 1
+                when dx like '%A54.86%' then 1
+                when dx like '%B37.7%' then 1
+                when dx like '%O85%' then 1
+                when dx like '%P36%' then 1
+                when dx like '%R65%' then 1
+                else 0 end"
+        metrics:
+          - 'sum'
+
+      - #
+        quantity:
+          volumeDepletion: "case
+                when dx like '%E86%' then 1
+                else 0 end"
+        metrics:
+          - 'sum'
+
+      - #
+        quantity:
+          shock: "case
+                when dx like '%D78%' then 1
+                when dx like '%E36%' then 1
+                when dx like '%G97%' then 1
+                when dx like '%I97%' then 1
+                when dx like '%J95%' then 1
+                when dx like '%K68.11%' then 1
+                when dx like '%k91%' then 1
+                when dx like '%L76%' then 1
+                when dx like '%M96%' then 1
+                when dx like '%N99%' then 1
+                when dx like '%O03%' then 1
+                else 0 end"
+        metrics:
+          - 'sum'
+
+      - #
+        quantity:
+          hypertension: "case
+
+                when dx like '%I11.9%' then 1
+                when dx like '%I12.9%' then 1
+                when dx like '%I13.10%' then 1
+                when dx like '%I16.0%' then 1
+                when dx like '%I16.1%' then 1
+                when dx like '%I16.94%' then 1
+                else 0 end"
+        metrics:
+          - 'sum'
+
+      - # Type 2 Diabetes
+        quantity:
+          t2dm: "case
+                when dx_type = '10' and dx like '%E11%' then 1
+                when dx_type = '10' and dx like '%O24.1%' then 1
+                when  dx_type = '09' and dx in
+                              ( '250.00',
+                '250.02',
+                '250.20',
+                '250.22',
+                '250.40',
+                '250.42',
+                '250.50',
+                '250.52',
+                '250.60',
+                '250.62',
+                '250.80',
+                '250.82',
+                '250.90',
+                '250.92') then 1
+
+                else 0 end"
+        metrics:
+          - 'sum'
+
+      - #MASH/MAFLD
+        quantity:
+          mafld: "case
+                when dx ='K75.81' and dx_type = '10' then 1
+                when dx ='K76.0' and dx_type ='10' then 1
+                when dx ='571.8' and dx_type ='09' then 1
+
+
+                else 0 end"
+        metrics:
+          - 'sum'
+
+
+      - #Essential Hypertension
+        quantity:
+          ehypertension: "case
+                          when dx ='I10' and dx_type = '10' then 1
+                          when dx_type = '09' and dx like '401.1%' then 1
+                          when dx_type = '09' and dx like '401.9%' then 1
+
+                          else 0 end"
+        metrics:
+          - 'sum'
+
+      - #Obesity
+        quantity:
+          obesity_dx: "case
+                        when dx like 'Z68.3%' and dx_type = '10' then 1
+                        when dx  like 'Z68.4%' and dx_type ='10' then 1
+                        when dx like 'E66%' and dx_type = '10' then 1
+                        when dx  like 'O99.21%' and dx_type ='10' then 1
+                        when dx  = '278.0' and dx_type ='09' then 1
+                        when dx = '278.00' and dx_type = '09' then 1
+                        when dx  = '278.01' and dx_type ='09' then 1
+
+                        else 0 end"
+        metrics:
+          - 'sum'       
+
+    intervals: ['1month','3month','12month','all']
+
+  - # fib4 - need to change to result_date
+    prefix: 'fib4'
+    from_obj: 'clean.fib4'
+    knowledge_date_column: 'specimen_date'
+
+    aggregates_imputation:
+            all:
+                type: 'zero_noflag'
+
+    categoricals_imputation:
+            all:
+                type: 'null_category'
+
+    aggregates:
+      - #number of fib4s
+        quantity:
+          total: "*"
+        metrics: ['count']
+
+      - 
+        quantity:
+          fib4: fib4
+        metrics:
+          - sum
+          - avg
+          - min
+          - max
+        imputation:
+            all:
+              type: 'zero'
+
+    intervals: ['1month','3month','12month','all']
+
+  - # vitals
+    prefix: 'vitals'
+    from_obj: 'clean.vitals'
+    knowledge_date_column: 'measure_date'
+    aggregates_imputation:
+      all:
+        type: 'mean'
+
+    categoricals_imputation:
+      all:
+        type: 'null_category'
+
+    categoricals:
+      -
+        column: 'smoking'
+        metrics:
+          - 'max'
+        choice_query: 'select distinct smoking from clean.vitals'
+
+    intervals: ['12month','all']
+
+  - # labs
+    prefix: 'labs_ordered'
+    from_obj: 'clean.labs'
+    knowledge_date_column: 'lab_order_date'
+    aggregates_imputation:
+      all:
+        type: 'mean'
+
+    categoricals_imputation:
+      all:
+        type: 'null_category'
+    
+
+    aggregates:
+      - #number of labs ordered
+        quantity:
+          total: "*"
+        metrics:
+          - 'count'
+    
+          - # total number of unique days labs ordered in the past
+        quantity:
+          unique_days_visited: "distinct DATE(lab_order_date)"
+        metrics:
+          - 'count'
+
+    intervals: ['1month', '3month', '6month','12month','all']
+
+      # - # BMI
+      #            prefix: 'days_since'
+      #            from_obj: 'clean.vital'
+      #            knowledge_date_column: 'measure_date'
+      #            aggregates_imputation:
+      #              all:
+      #                type: 'mean'
+      #            aggregates:
+      #              - # days since last event
+      #                quantity:
+      #                  BMI: "original_bmi"
+      #                metrics:
+      #                  - 'min'
+      #                  - 'max'
+      #                imputation:
+      #                  all:
+      #                    type: 'constant'
+      #                    value: null
+
+      #            intervals: ['1month','3month','6month','12month','all']
+      #            groups: [ 'entity_id' ]
+
+
+## Todo: add
+                         #Hyperlipidemia
+                         #GERD?
+                        # - #Anxiety?
+                        # - # ICD-9 codes
+    #procedures
+ #   - #biopsy
+      #procedures that are outcome related (add to outcomes)
+    #Vitals
+      #BMI
+        #add calculated version for missing height later
+      #Weight
+      #Height
+      #BP
+
+      #Smoking category
+
+
+    #Labs
+        #LFTS
+      #AST, ALT, platelets, albumin, ggt, triglicerides, fibrotest?
+      #other labs
+      #calculated scores
+
+
+#model_grid_preset:  'quickstart'
+grid_config:
+
+      #  'triage.component.catwalk.baselines.rankers.BaselineRankMultiFeature':
+      #    rules:
+      #        - [{feature: 'days_since_entity_id_50y_last_encounter_min', low_value_high_score: True}]
+      #        - [{feature: 'encounters_entity_id_all_total_count', low_value_high_score: False}]
+      #        - [{feature: 'encounters_entity_id_all_unique_days_visited_count', low_value_high_score: False}]
+      #        - [{feature: 'demos_entity_id_all_age_max',low_value_high_score: False}]
+      #        - [{feature: 'ccsr_entity_id_all_total_count',low_value_high_score: False}]
+      #        - [{feature: 'fib4_entity_id_12month_fib4_max',low_value_high_score: False}]
+      #        - [{feature: 'fib4_entity_id_all_total_count',low_value_high_score: False}]
+      #        - [{feature: 'fib4_entity_id_all_fib4_avg',low_value_high_score: False}]
+      #        - [{feature: 'labs_ordered_entity_id_12month_unique_days_visited_count',low_value_high_score: False}]       
+             
+
+
+        'sklearn.dummy.DummyClassifier':
+          strategy: ['prior']
+
+      # 'triage.component.catwalk.estimators.classifiers.ScaledLogisticRegression':
+      #    penalty: ['l2', 'l1']
+      #    max_iter: [1000]
+      #    solver: ['saga']
+      #    C: [0.0001,0.001, 0.01,0.1,1,5]
+
+      #  'sklearn.tree.DecisionTreeClassifier':
+      #    criterion: ['gini']
+      #    max_depth: [1, 2, 5, 10, 30]
+      #    min_samples_split: [10]
+
+      #  'lightgbm.LGBMClassifier':
+      #    max_depth: [10]
+      #    num_leaves: [10,60]
+      #    n_estimators: [100]
+      #    boosting_type: ['dart','gbdt']
+      #    is_unbalance: ['true', 'false']
+      #    n_jobs: [30]
+
+      # 'sklearn.ensemble.RandomForestClassifier':
+      #    n_estimators: [1000,5000]
+      #    criterion: ['gini']
+      #    max_depth: [10, 100,~]
+      #    min_samples_split: [10]
+      #    class_weight: ['balanced',~]
+      #    n_jobs: [42]
+
+
+      # 'sklearn.ensemble.RandomForestClassifier':
+      #    n_estimators: [10000]
+      #    criterion: ['gini']
+      #    max_depth: [100]
+      #    min_samples_split: [10]
+      #    n_jobs: [44]
+
+
+scoring:
+    testing_metric_groups:
+        -
+          metrics: [precision@, recall@]
+          thresholds:
+            percentiles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 
+                              10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                              20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 
+                              30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
+                              40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+                              50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+                              60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+                              70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+                              80, 81, 82, 83, 84, 85, 86, 87, 88, 89,
+                              90, 91, 92, 93, 94, 95, 96, 97, 98, 99,
+                              100]
+            top_n: [100, 200, 500, 1000]
+        -
+          metrics: [roc_auc] 
+
+    training_metric_groups:
+      -
+          metrics: [precision@, recall@]
+          thresholds:
+            percentiles: [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+    subsets:
+      -
+        name: prev_nash_nafld
+        query: |
+          select distinct entity_id
+          from clean.diagnosis_mod_extended
+          where ((dx ='K75.81' and dx_type = '10') or
+                (dx ='K76.0' and dx_type ='10') or
+                (dx ='571.8' and dx_type ='09')) and 
+          (admit_date < '{as_of_date}'::date)
+
+
+# bias_audit_config:
+#   from_obj_table: |
+#     (select entity_id, sex,race,birth_date,zip_code,
+#           greatest(birth_date,'2011-01-01') as dob from clean.demographics) as demos
+    
+#   attribute_columns: [sex, race]
+#   knowledge_date_column: dob
+#   entity_id_column: entity_id
+#   ref_groups_method: predefined
+#   ref_groups: 
+#     sex: 'M'
+#     race: '05'
+#   thresholds:
+#     percentiles: [1,5,10,15,20,25,50,100]
+#     top_n: [50, 100, 150, 200, 500, 1000]

@@ -1,0 +1,70 @@
+prefix: 'most_recent_fib4'
+from_obj: |
+  (select 
+    entity_id,
+    as_of_date,
+    latest_date as knowledge_date,
+    all_tests_same_day::int,
+    gap_between_tests,
+    fib4
+  from clean.most_recent_fib4_biopsy_cohort
+  -- Only considering results read within a year
+  where days_since_plt < 365
+  and days_since_alt < 365
+  and days_since_ast < 365
+  -- If not on the same day, all three labs should be within 6 moths of each other
+  and gap_between_tests < 180) as fib
+
+knowledge_date_column: knowledge_date
+
+intervals: ['all']
+
+aggregates_imputation:
+  all:
+      type: 'zero'
+
+aggregates:
+  - # most recent fib4 calc
+    quantity:
+      fib4: "case 
+            when as_of_date = '{collate_date}'::date 
+            then fib4 
+            else NULL
+            end
+            "
+    metrics: ['max']
+
+  - # number of days between the two tests farthest away from each other
+    quantity:
+      test_days_gap: "case 
+            when as_of_date = '{collate_date}'::date 
+            then gap_between_tests 
+            else NULL
+            end
+            "
+    metrics: ['max']
+    
+  - # flag indicating whether all tests were on the same day; would indicate a more reliable fib4 reading 
+    quantity:
+      same_day_flg: "case 
+            when as_of_date = '{collate_date}'::date 
+            then all_tests_same_day 
+            else NULL
+            end
+            "
+    metrics: ['max']
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # measurement age
+    quantity:
+      days_since_measurement: ('{collate_date}'::date - knowledge_date)
+
+    metrics: ['max']
+
+    imputation:
+      all:
+        type: constant
+        value: 99999

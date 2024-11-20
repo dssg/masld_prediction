@@ -1,0 +1,392 @@
+prefix: 'most_recent_lab'
+from_obj: clean.most_recent_labs
+
+knowledge_date_column: 'specimen_date'
+
+# TODO - Need to think through the best way to impute this
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+intervals: ['all']
+
+# The precomputed table should have 
+aggregates:
+  - # most recent platelet measurement
+    quantity:
+      platelet: "case 
+            when (lab_type = 'platelet' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 300 # middle of the normal range
+
+  - # days since the most recent platelet measurement
+    quantity:
+      platelet_dys_since: "case 
+                      when (lab_type = 'platelet' and as_of_date = '{collate_date}'::date) 
+                      then days_since_lab 
+                      else NULL
+                      end
+                      "
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+  - # most recent alt
+    quantity:
+      alt: "case 
+            when (lab_type = 'alt' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # days since the most recent alt
+    quantity:
+      alt_dys_since: "case 
+            when (lab_type = 'alt' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+  - # most recent a1c
+    quantity:
+      a1c: "case 
+            when (lab_type = 'a1c' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # most recent a1c days since
+    quantity:
+      a1c_dys_since: "case 
+            when (lab_type = 'a1c' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+  - # most recent albumin
+    quantity:
+      albumin: "case 
+            when (lab_type = 'albumin' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # most recent albumin days since
+    quantity:
+      albumin_dys_since: "case 
+            when (lab_type = 'albumin' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+
+  - # most recent alp
+    quantity:
+      alp: "case 
+            when (lab_type = 'alp' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+
+  - # most recent alp days since
+    quantity:
+      alp_dys_since: "case 
+            when (lab_type = 'alp' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+  - # most recent ast
+    quantity:
+      ast: "case 
+            when (lab_type = 'ast' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # most recent ast days since
+    quantity:
+      ast_dys_since: "case 
+            when (lab_type = 'ast' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+
+  - # most recent ggt
+    quantity:
+      ggt: "case 
+            when (lab_type = 'ggt' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # most recent ggt days since
+    quantity:
+      ggt_dys_since: "case 
+            when (lab_type = 'ggt' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+
+  - # most recent hdl
+    quantity:
+      hdl: "case 
+            when (lab_type = 'hdl' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 10000
+
+  - # most recent hdl days since
+    quantity:
+      hdl_dys_since: "case 
+            when (lab_type = 'hdl' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+  - # most recent ldl
+    quantity:
+      ldl: "case 
+            when (lab_type = 'ldl' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # most recent ldl days since
+    quantity:
+      ldl_dys_since: "case 
+            when (lab_type = 'ldl' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+
+    metrics:
+      - max
+
+
+  - # most recent tg
+    quantity:
+      tg: "case 
+            when (lab_type = 'tg' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # most recent tg days since
+    quantity:
+      tg_dys_since: "case 
+            when (lab_type = 'tg' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999
+
+  - # most recent tot_chol
+    quantity:
+      tot_chol: "case 
+            when (lab_type = 'tot_chol' and as_of_date = '{collate_date}'::date) 
+            then result_num 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - # most recent tg days since
+    quantity:
+      tot_chol_dys_since: "case 
+            when (lab_type = 'tot_chol' and as_of_date = '{collate_date}'::date) 
+            then days_since_lab 
+            else NULL
+            end
+            "
+          
+    metrics:
+      - max
+
+    imputation:
+      all:
+        type: constant
+        value: 99999

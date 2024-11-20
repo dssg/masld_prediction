@@ -1,0 +1,23 @@
+prefix: 'labs_prior_rate'
+from_obj: clean.labs
+knowledge_date_column: 'specimen_date'
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+intervals: ['12month','all']
+
+categoricals:
+
+  - # top  labs by class prior rate
+    column: 'lab_loinc'
+    choice_query: |
+            SELECT DISTINCT lab_loinc from analysis.lab_codes_for_prior_rate_testing
+    metrics:
+      - 'sum'
+

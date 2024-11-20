@@ -1,0 +1,68 @@
+prefix: 'most_recent_vitals'
+from_obj: clean.most_recent_vitals_biopsy_cohort
+knowledge_date_column: measure_date
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+intervals: ['all']
+
+aggregates:
+  - 
+    quantity: 
+      height: "case 
+            when measure_type = 'height' and as_of_date = '{collate_date}'::date 
+            then value 
+            else NULL
+            end
+            "
+    metrics: ['max']
+
+      # imputation:
+      #   all:
+      #     type: constant
+      #     value: 120
+
+  - # last known weight
+    quantity:
+      weight: "case 
+            when measure_type = 'weight' and as_of_date = '{collate_date}'::date 
+            then value 
+            else NULL
+            end
+            "
+    metrics: ['max']
+
+  - 
+    quantity:
+      bmi: "case 
+            when measure_type = 'bmi' and as_of_date = '{collate_date}'::date
+            then value 
+            else NULL
+            end
+            "
+    metrics: ['max']
+
+
+  - 
+    quantity:
+      systolic: "case 
+            when measure_type = 'systolic' and as_of_date = '{collate_date}'::date
+            then value 
+            else NULL
+            end
+            "
+
+    metrics: ['max']
+
+  - 
+    quantity:
+      diastolic: "case 
+            when measure_type = 'diastolic' and as_of_date = '{collate_date}'::date 
+            then value 
+            else NULL
+            end
+            "
+
+    metrics: ['max']

@@ -1,0 +1,23 @@
+prefix: 'px_prior_rate'
+from_obj: clean.procedures
+knowledge_date_column: 'px_date'
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+categoricals_imputation:
+  all:
+    type: 'null_category'
+
+intervals: ['12month','all']
+
+categoricals:
+
+  - # top  px by class prior rate
+    column: 'px'
+    choice_query: |
+            SELECT DISTINCT px from analysis.px_codes_for_prior_rate_testing
+    metrics:
+      - 'sum'
+

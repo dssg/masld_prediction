@@ -1,0 +1,20 @@
+prefix: 'days_since'
+from_obj: 'clean.encounters'
+knowledge_date_column: 'discharge_date'
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+aggregates:
+  - # days since last event
+    quantity:
+      encounter: "'{collate_date}'::DATE - discharge_date::DATE"
+    metrics:
+        - 'min'
+        - 'max'
+    imputation:
+      all:
+        type: 'constant'
+        value: 1000
+
+intervals: ['all']

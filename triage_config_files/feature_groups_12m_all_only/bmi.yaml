@@ -1,0 +1,28 @@
+prefix: 'a_bmi'
+from_obj: |
+  (select 
+    *
+  from clean.bmi 
+  -- ignoring weight measurements that has > 1 lb per day deviation from the last measurement 
+  where wt_diff_from_last < 5 ) as sq
+knowledge_date_column: 'measure_date'
+
+aggregates_imputation:
+  all:
+    type: 'constant'
+    value: 20 
+
+intervals: ['12month','all']
+
+aggregates:
+  - # bmi
+    quantity: bmi
+    metrics: [min, max, avg, stddev]
+
+  - # rate of weight change between subsequent measurements
+    quantity: 
+      wt_diff: wt_diff_from_last
+    metrics: [min, max, avg, stddev]
+    imputation:
+      all:
+        type: 'zero'

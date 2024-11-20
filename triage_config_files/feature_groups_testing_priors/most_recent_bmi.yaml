@@ -1,0 +1,62 @@
+prefix: 'most_recent_bmi'
+from_obj: |
+  (select 
+    entity_id,
+    as_of_date,
+    greatest(height_date, weight_date)::date as knowledge_date,
+    measurements_same_day::int,
+    gap_between_tests,
+    bmi
+  from clean.most_recent_bmi
+  -- Only considering weight measurement within 6 months
+  where days_since_wt < 180) as sq
+  
+knowledge_date_column: knowledge_date
+
+intervals: ['all']
+
+aggregates_imputation:
+  all:
+      type: 'mean'
+
+aggregates:
+  - # most recent fib4 calc
+    quantity:
+      bmi: "case 
+            when as_of_date = '{collate_date}'::date 
+            then bmi 
+            else NULL
+            end
+            "
+    metrics: ['max']
+
+  - # number of days between the two tests farthest away from each other
+    quantity:
+      measure_days_gap: "case 
+            when as_of_date = '{collate_date}'::date 
+            then gap_between_tests 
+            else NULL
+            end
+            "
+    metrics: ['max']
+    
+  - # flag indicating whether all tests were on the same day; would indicate a more reliable fib4 reading 
+    quantity:
+      same_day_flg: "case 
+            when as_of_date = '{collate_date}'::date 
+            then measurements_same_day 
+            else NULL
+            end
+            "
+    metrics: ['max']
+
+  - # measurement age
+    quantity:
+      days_since: ('{collate_date}'::date - knowledge_date)
+
+    metrics: ['max']
+
+    imputation:
+      all:
+        type: constant
+        value: 99999

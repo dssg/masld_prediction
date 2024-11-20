@@ -1,0 +1,600 @@
+prefix: lab_res
+from_obj: 'clean.labs'
+knowledge_date_column: 'specimen_date'
+
+aggregates_imputation:
+  all:
+    type: 'mean'
+
+intervals: ['1month', '12month','all']
+
+aggregates:
+  - # platelet
+    quantity: 
+      plt: "case 
+            when lab_loinc in ('777-3', '26515-7', '49497-1', '778-1')
+            then result_num
+            else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 150 # bottom of the normal range
+
+  - # alt
+    quantity:
+      alt: "case 
+            when lab_loinc in ('1742-6', '1743-4', '1744-2')
+            then result_num
+            else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 12 # elevated at 25 for women
+
+  - #ast 
+    quantity:
+      ast: "case 
+              when lab_loinc in ('1920-8', '30239-8')
+              then result_num
+              else null
+              end
+            "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 12 # <40 is normal
+
+  - #a1c
+    quantity:
+      a1c: "case 
+              when lab_loinc in ('17856-6', '41995-2', '4549-2', '4548-4')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 4.3 # less than 5.7 is normal
+
+  - #albumin
+    quantity:
+      albumin: "case 
+                  when lab_loinc in ('1751-7', '61151-7', '2862-1', '61152-5')
+                  then result_num
+                  else null
+                end
+              "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 5.5 # below 3.4 related to liver disease
+
+  - #alp
+    quantity:
+      alp: "case 
+              when lab_loinc in ('6768-6')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 38 # higher related to liver disease
+
+  - #ggt
+    quantity:
+      ggt: "case 
+              when lab_loinc in ('2324-2')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # <40 is normal
+
+  - #tg
+    quantity:
+      tg: "case 
+            when lab_loinc in ('2571-8')
+            then result_num
+            else null
+          end
+        "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 # <150 is normal
+    
+  - #LDL
+    quantity:
+      ldl: "case 
+              when lab_loinc in ('13457-7', '18262-6', '2089-1', '3046-0')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0 #<100 is normal
+
+  - #HDL
+    quantity:
+      hdl: "case 
+              when lab_loinc in ('2085-9')
+              then result_num
+              else null
+            end
+          "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 60 # >60 is normal
+
+  - # total cholesterol
+    quantity:
+      tot_chol: "case 
+                    when lab_loinc in ('2093-3')
+                    then result_num
+                    else null
+                  end
+                "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 100 # <200 is normal
+
+  - #apo_a1
+    quantity:
+      apo_a1: "case 
+                      when lab_loinc in ('1869-7', '55724-9')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 176 #low with liver disease
+
+  - #apo_b
+    quantity:
+      apo_b: "case 
+                      when lab_loinc in ('1884-6', '1871-3', '1881-2')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 75 # <100 is normal
+
+  - #hscrp
+    quantity:
+      hscrp: "case 
+                      when lab_loinc in ('30522-7', '35648-5')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0.25 #<0.5 is normal
+
+  - #lp_a
+    quantity:
+      lp_a: "case 
+                      when lab_loinc in ('43583-4', '10835-7')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 1 #<1.7 mmol/L is normal
+
+  - #nlr
+    quantity:
+      nlr: "case 
+                      when lab_loinc in ('770-8', '23761-0', '26511-6')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 1.5 # supposedly >2 is non normal
+
+  - #non_hdl
+    quantity:
+      non_hdl: "case 
+                      when lab_loinc in ('43396-1')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 100
+
+  - #uacr
+    quantity:
+      uacr: "case 
+                      when lab_loinc in ('9318-7', '13705-9', '32294-1', '14585-4')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 15 #<30 is normal
+
+  - #vldl
+    quantity:
+      vldl: "case 
+                      when lab_loinc in ('46986-6', '13458-5', '2091-7')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 2 #<30 is normal
+
+  - #creatinine
+    quantity:
+      creatinine: "case 
+                      when lab_loinc in ('2160-0', '38483-4')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0.5 #<1.1 is normal for women (1.3 for men)
+
+  - #uric_acid
+    quantity:
+      uric_acid: "case 
+                      when lab_loinc in ('3084-1', '14933-6')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 2 #<6 is normal for women (7 for men)
+
+  - #hemoglobin
+    quantity:
+      hemoglobin: "case 
+                      when lab_loinc in ('718-7', '55782-7', '20509-6', '30350-3', '76769-9')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 16 #>12 is normal for women (14 for men)
+
+  - #glucose
+    quantity:
+      glucose: "case 
+                      when lab_loinc in ('2345-7', '2339-0', '2340-8', '14749-6')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 99 #<100 is normal
+
+  - #iron_saturation
+    quantity:
+      iron_saturation: "case 
+                      when lab_loinc in ('2502-3', '14801-5')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 30 #25-35 is normal
+
+  - #ferritin
+    quantity:
+      ferritin: "case 
+                      when lab_loinc in ('2276-4', '20567-4')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 100 #<200 is normal for women, 300 for men
+
+  - #aat
+    quantity:
+      aat: "case 
+                      when lab_loinc in ('1825-9', '32769-2', '6771-0', '6770-2', '49244-7')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 75 # <220 is normal
+
+  - #basophils
+    quantity:
+      basophils: "case 
+                      when lab_loinc in ('704-7', '26444-0', '705-4')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - #blratio
+    quantity:
+      blratio: "case 
+                      when lab_loinc in ('706-2', '30180-4', '707-0')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - #el_ratio
+    quantity:
+      el_ratio: "case 
+                      when lab_loinc in ('713-8', '26450-7', '714-6')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - #eosinophils
+    quantity:
+      eosinophils: "case 
+                      when lab_loinc in ('711-2', '26449-9', '712-0', '20472-7')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 120
+
+  # - #erythrocytes
+  #   quantity:
+  #     erythrocytes: "case 
+  #                     when lab_loinc in ('789-8', '26453-1')
+  #                     then result_num
+  #                     else null
+  #                   end
+  #                 "
+  #   metrics: [max, min, avg, stddev]
+  #   imputation:
+  #     all:
+  #       type: constant
+  #       value: 0
+  
+  - #erythrocytes
+    quantity:
+      erythrocytes: "case 
+                      when lab_loinc in ('789-8', '26453-1')
+                      and abn_ind = 'AH' then 1
+                      when lab_loinc in ('789-8', '26453-1')
+                      and abn_ind = 'NI' then 0
+                      when lab_loinc in ('789-8', '26453-1')
+                      and abn_ind = 'AL' then -1
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+  - #hematocrit
+    quantity:
+      hematocrit: "case 
+                      when lab_loinc in ('4544-3', '20570-8', '4545-0', '48703-3')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 42
+
+  - #leukocytes
+    quantity:
+      leukocytes: "case 
+                      when lab_loinc in ('6690-2', '26464-8')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 7
+
+  - #lyle_ratio
+    quantity:
+      lyle_ratio: "case 
+                      when lab_loinc in ('736-9', '26478-8', '737-7')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 30
+
+  - #mlratio
+    quantity:
+      mlratio: "case 
+                  when lab_loinc in ('5905-5', '26485-3', '744-3')
+                  then result_num
+                  else null
+                end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 7
+
+  # - #monocytes
+  #   quantity:
+  #     monocytes: "case 
+  #                     when lab_loinc in ('742-7', '26484-6', '743-5')
+  #                     then result_num
+  #                     else null
+  #                   end
+  #                 "
+  #   metrics: [max, min, avg, stddev]
+  #   imputation:
+  #     all:
+  #       type: constant
+  #       value: 0
+
+
+  - #monocytes
+    quantity:
+      monocytes: "case 
+                      when lab_loinc in ('742-7', '26484-6', '743-5')
+                      and abn_ind = 'AH' then 1
+                      when lab_loinc in ('742-7', '26484-6', '743-5')
+                      and abn_ind = 'NI' then 0
+                      when lab_loinc in ('742-7', '26484-6', '743-5')
+                      and abn_ind = 'AL' then -1
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+
+  # - #neutrophils
+  #   quantity:
+  #     neutrophils: "case 
+  #                     when lab_loinc in ('751-8', '753-4', '26499-4')
+  #                     then result_num
+  #                     else null
+  #                   end
+  #                 "
+  #   metrics: [max, min, avg, stddev]
+  #   imputation:
+  #     all:
+  #       type: constant
+  #       value: 0
+
+  - #neutrophils
+    quantity:
+      neutrophils: "case 
+                      when lab_loinc in ('751-8', '753-4', '26499-4')
+                      and abn_ind = 'AH' then 1
+                      when lab_loinc in ('751-8', '753-4', '26499-4')
+                      and abn_ind = 'NI' then 0
+                      when lab_loinc in ('751-8', '753-4', '26499-4')
+                      and abn_ind = 'AL' then -1
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 0
+
+
+
+  - #platelet_volume
+    quantity:
+      platelet_volume: "case 
+                      when lab_loinc in ('32623-1', '776-5', '28542-9')
+                      then result_num
+                      else null
+                    end
+                  "
+    metrics: [max, min, avg, stddev]
+    imputation:
+      all:
+        type: constant
+        value: 10 # low end of normal range

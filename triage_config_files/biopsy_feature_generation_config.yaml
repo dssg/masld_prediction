@@ -1,0 +1,208 @@
+# CONFIG VERSION
+config_version: 'v8'
+
+# EXPERIMENT METADATA
+model_comment: 'biopsy_feat_gen_1mo'
+random_seed: 42
+
+
+# TIME SPLITTING
+temporal_config:
+    feature_start_time: '2011-01-01'
+    feature_end_time: '2023-05-01'
+    label_start_time: '2015-01-01'
+    label_end_time: '2023-06-01'
+    model_update_frequency: '10year' #  how frequently to retrain models
+    training_as_of_date_frequencies: '1month'  # time between as of dates for same entity in train matrix
+    test_as_of_date_frequencies: '1month'  # time between as of dates for same entity in test matrix
+    max_training_histories: '10year'  # length of time included in a train matrix
+    test_durations: '25month' # length of time included in a test matrix (0 days will give a single prediction immediately after training end)
+    label_timespans: ['3year'] # time period across which outcomes are labeled
+
+# COHORT AND LABEL GENERATION
+label_config:
+  query: |
+    select 
+      entity_id, 
+      coalesce(bool_or(first_liver_outcome_date < '{as_of_date}'::date + '{label_timespan}'::interval and first_liver_outcome_date > '{as_of_date}'::date), false)::int as outcome
+    from clean.biopsy_labels bl left join analysis.entity_earliest_exclusion_and_outcome_dates ex using(entity_id)
+    where order_date > '{as_of_date}'::date
+    and order_date < '{as_of_date}'::date + '1month'::interval
+    and (ex.first_exclusion_date > '{as_of_date}' or ex.first_exclusion_date is null)
+    and entity_id is not null
+    and mash = 'Y'
+    group by 1
+  # filepath: 'triage_config_files/biopsy_feature_generation_cohort.sql'
+  # include_missing_labels_in_train_as: false
+  # should change it to 3yr cohort
+  name: 'biopsy_1mo'
+
+#model_grid_preset:  'quickstart'
+grid_config:
+
+    #'triage.component.catwalk.baselines.rankers.BaselineRankMultiFeature':
+       #rules:
+           #- [{feature: 'days_since_entity_id_50y_last_encounter_min', low_value_high_score: True}]
+           #- [{feature: 'encounters_entity_id_all_total_count', low_value_high_score: False}]
+           #- [{feature: 'encounters_entity_id_all_unique_days_visited_count', low_value_high_score: False}]
+           #- [{feature: 'demos_entity_id_all_age_max',low_value_high_score: False}]
+           #- [{feature: 'diagnosis_entity_id_all_unique_ccsr_categories_count',low_value_high_score: False}]
+           #- [{feature: 'fib4_entity_id_12month_fib4_max',low_value_high_score: False}]
+           #- [{feature: 'fib4_entity_id_all_total_count',low_value_high_score: False}]
+           #- [{feature: 'fib4_entity_id_all_fib4_avg',low_value_high_score: False}]
+           #- [{feature: 'most_recent_lab_entity_id_all_platelet_max',low_value_high_score: False}]
+           #- [{feature: 'most_recent_vitals_entity_id_all_bmi_max',low_value_high_score: False}]
+           #- [{feature: 'labs_ordered_entity_id_12month_unique_days_visited_count',low_value_high_score: False}]       
+            
+
+    'sklearn.dummy.DummyClassifier':
+       strategy: ['prior']
+
+    # 'triage.component.catwalk.estimators.classifiers.ScaledLogisticRegression':
+    #    penalty: ['l2']
+    #    max_iter: [1000]
+    #    solver: ['lbfgs']
+    #    C: [ 0.01,0.1]
+    #    n_jobs: [20]
+
+
+    # 'sklearn.tree.DecisionTreeClassifier':
+    #    criterion: ['gini']
+    #    max_depth: [2,3,5]
+    #    min_samples_split: [10,100]
+
+    # 'lightgbm.LGBMClassifier':
+    #     max_depth: [10]
+    #     num_leaves: [10]
+    #     n_estimators: [100]
+    #     boosting_type: ['dart']
+    #     is_unbalance: ['false']
+    #     n_jobs: [30]
+
+    # 'triage.component.catwalk.estimators.classifiers.ScaledLogisticRegression':
+    #     penalty: ['l2']
+    #     max_iter: [1000]
+    #     solver: ['saga']
+    #     C: [ 0.01]
+
+    # 'sklearn.ensemble.RandomForestClassifier':
+    #     n_estimators: [10000]
+    #     criterion: ['gini']
+    #     max_depth: [100]
+    #     min_samples_split: [10]
+    #     n_jobs: [44]
+
+    # 'imblearn.ensemble.BalancedRandomForestClassifier':
+    #     n_estimators: [10000]
+    #     criterion: ['gini']
+    #     max_depth: [100]
+    #     min_samples_split: [10]
+    #     sampling_strategy: [0.05,0.1,0.2]
+    #     replacement: [True]
+    #     n_jobs: [44]
+
+    # 'xgboost.XGBClassifier':
+    #     booster: ['dart']
+    #     tree_method: ["hist"]
+    #     max_depth: [3]
+    #     nthread: [44]
+    #     eval_metric: ["logloss"]
+
+    # 'imblearn.ensemble.BalancedRandomForestClassifier':
+    #     n_estimators: [5000]
+    #     criterion: ['gini']
+    #     max_depth: [100]
+    #     min_samples_split: [10]
+    #     sampling_strategy: ['auto']
+    #     replacement: [False,True]
+    #     n_jobs: [44]
+
+      # 'triage.component.catwalk.estimators.classifiers.ScaledLogisticRegression':
+      #    penalty: ['l2', 'l1']
+      #    max_iter: [1000]
+      #    solver: ['saga']
+      #    C: [0.0001,0.001, 0.01,0.1,1,5]
+
+      #  'sklearn.tree.DecisionTreeClassifier':
+      #    criterion: ['gini']
+      #    max_depth: [1, 2, 5, 10, 30]
+      #    min_samples_split: [10]
+
+      #  'lightgbm.LGBMClassifier':
+      #    max_depth: [10]
+      #    num_leaves: [10,60]
+      #    n_estimators: [100]
+      #    boosting_type: ['dart','gbdt']
+      #    is_unbalance: ['true', 'false']
+      #    n_jobs: [30]
+
+      # 'sklearn.ensemble.RandomForestClassifier':
+      #    n_estimators: [1000,5000]
+      #    criterion: ['gini']
+      #    max_depth: [10, 100,~]
+      #    min_samples_split: [10]
+      #    class_weight: ['balanced',~]
+      #    n_jobs: [42]
+
+
+      # 'sklearn.ensemble.RandomForestClassifier':
+      #    n_estimators: [10000]
+      #    criterion: ['gini']
+      #    max_depth: [100]
+      #    min_samples_split: [10]
+      #    n_jobs: [44]
+
+
+scoring:
+    testing_metric_groups:
+        -
+          metrics: [precision@, recall@]
+          thresholds:
+            percentiles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 
+                              10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                              20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 
+                              30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
+                              40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+                              50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+                              60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+                              70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+                              80, 81, 82, 83, 84, 85, 86, 87, 88, 89,
+                              90, 91, 92, 93, 94, 95, 96, 97, 98, 99,
+                              100]
+            top_n: [100, 200, 500, 1000]
+        -
+          metrics: [roc_auc] 
+
+    training_metric_groups:
+      -
+          metrics: [precision@, recall@]
+          thresholds:
+            percentiles: [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+    subsets:
+      -
+        name: prev_nash_nafld
+        query: |
+          select distinct entity_id
+          from clean.diagnosis_mod_extended
+          where ((dx ='K75.81' and dx_type = '10') or
+                (dx ='K76.0' and dx_type ='10') or
+                (dx ='571.8' and dx_type ='09')) and 
+          (admit_date < '{as_of_date}'::date)
+
+
+bias_audit_config:
+  from_obj_table: |
+    (select entity_id, sex,race,birth_date,zip_code,
+          greatest(birth_date,'2011-01-01') as dob from clean.demographics) as demos
+    
+  attribute_columns: [sex, race]
+  knowledge_date_column: dob
+  entity_id_column: entity_id
+  ref_groups_method: predefined
+  ref_groups: 
+    sex: 'M'
+    race: '05'
+  thresholds:
+    percentiles: [1,5,10,20,50,100]
+    top_n: [100, 1000]

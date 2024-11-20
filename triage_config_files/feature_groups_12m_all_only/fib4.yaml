@@ -1,0 +1,32 @@
+prefix: 'a_fib4'
+from_obj: 'clean.fib4'
+knowledge_date_column: 'specimen_date'
+
+aggregates_imputation:
+        all:
+            type: 'zero_noflag'
+
+categoricals_imputation:
+        all:
+            type: 'null_category'
+
+aggregates:
+  - #number of fib4s
+    quantity:
+      total: "*"
+    metrics: ['count']
+
+  - 
+    quantity:
+      fib4: fib4
+    metrics:
+      - sum
+      - avg
+      - min
+      - max
+    imputation:
+        all:
+          type: 'zero'
+
+#intervals: ['1month','3month','12month','all']
+intervals: ['12month','all']
