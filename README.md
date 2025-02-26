@@ -21,7 +21,7 @@ Predict the top k individuals (based on intervention capacity) who are at risk o
      - age, most recent fib4, co-morbidities
      - clinical guidelines - t2dm, obesity, high tg, glucose, hdl, bp, ast or alt
 - Metric(s):
-   - Primary: Precision (PPV) or Recall (sensitivity) at top k (:warning: need to determine k based on capacity)
+   - Primary: Precision (PPV) or Recall (sensitivity) at top k ([!WARNING] need to determine k based on capacity)
    - AUC (if capacity is TBD)
 - Fairness metric: TPR disparity by Race, Gender
 
