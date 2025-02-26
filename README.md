@@ -21,11 +21,9 @@ Predict the top k individuals (based on intervention capacity) who are at risk o
      - age, most recent fib4, co-morbidities
      - clinical guidelines - t2dm, obesity, high tg, glucose, hdl, bp, ast or alt
 - Metric(s):
-   - Primary: Precision (PPV) or Recall (sensitivity) at top k (
-     [!WARNING]
-     need to determine k based on capacity)
-   - AUC (if capacity is TBD)
-- Fairness metric: TPR disparity by Race, Gender
+   - Primary: Precision (PPV) or Recall (sensitivity) at top k (need to determine k based on capacity)
+   - AUC (if capacity is TBD but not recommended)
+- Fairness metric: TPR disparity by Race, Gender (need to determine acceptable ratio)
 
 ## Methodology
 1. **Define cohort based on formulation**: All patients > 18 years, at least one outpatient visit in the past 3 years, no previous diagnosis of liver-related complications or other liver-related diagnosis exclusions. [sql file used in config](triage_config_files/cohort_label_query_CTE.sql)
