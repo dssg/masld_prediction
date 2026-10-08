@@ -61,7 +61,7 @@ Assuming Triage is installed and the data is in a postgres database. To run,
 
 ### current config file
 1. The current one is [here](triage_config_files/c3y_l3y_upd1y_asof1y_nofeatures_nomodels.yaml)
-2. File with design choices: [google doc](https://docs.google.com/spreadsheets/d/1DQU7vKe4vfZpDn5JPFf7yCaRJwSQR197hkte_gQ6QFc/edit#gid=724583270)
+2. File with design choices: [google doc](https://docs.google.com/spreadsheets/d/1uN_fCqTIjoW3T-y5FuenW9VST8e6Z_ndlxBXO_inW48/edit?usp=sharing)
 ### Config file choices to make: [example config file](https://github.com/dssg/triage/blob/master/example/config/experiment.yaml)
 1. cohort and label query: need to write a query that takes two parameters {as_of_date} and {label_timespan} and returns data in two columns (entity_id, outcome) specifying all the patients in the cohort as of {as_of_date} and outcomes can be 1 (got diagnosed with NASH/NAFLD related liver complications within the time period {label_timespan) from the {as_of_date}, 0 (did not get diagnosed), null (don't know or not sure). We can later turn nulls into 0s or ignore them. 
 3. temporal config parameters
